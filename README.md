@@ -1,0 +1,2 @@
+This is the Secrets project created based on Angela Yu's course, using her basic template but doing all of the nodeJS, mongoDB, authorization coding and connections myself. This is for testing and study material only but one of my first projects where I have done most of the coding on my own, figuring thing out as I go along. 
+Thank you for checking in. 
