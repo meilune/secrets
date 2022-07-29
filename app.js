@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require('mongoose');
 const e = require("express");
-var encrypt = require('mongoose-encryption');
 const dotenv = require('dotenv').config()
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -61,18 +60,20 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
     const username = req.body.username;
-    const password = md5(req.body.password);
+    const password = req.body.password;
 
     User.findOne({username: username}, (err, foundUser) => {
         if (err) {
             console.log(err)
         } else {
             if (foundUser) {
-                if (foundUser.password === password) {
-                    res.render("secrets");
+              bcrypt.compare(password, foundUser.password, function(err, result) {
+                if (result === true ) {
+                  res.render("secrets");
+                } else {
+                  res.redirect("/login");
                 }
-            } else {
-                res.redirect("/login");
+              });
             }
         }
     })
