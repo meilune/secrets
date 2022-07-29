@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 const e = require("express");
 var encrypt = require('mongoose-encryption');
 const dotenv = require('dotenv').config()
-const md5 = require('md5');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 main().catch(err => console.log(err));
 
@@ -38,9 +39,11 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  
+  bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
     const user = new User ({
       username: req.body.username,
-      password: md5(req.body.password)
+      password: hash
     });
     user.save(function(err){
       if (!err){
@@ -49,7 +52,8 @@ app.post("/register", (req, res) => {
         console.log(err);
       }
     });
-  })
+  });
+})
 
 app.get("/login", (req, res) => {
     res.render("login");
