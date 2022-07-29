@@ -106,7 +106,6 @@ app.post("/login", async (req, res) => {
   });
 });
 
-
 const port = process.env.PORT || 3000;
 
 //app can be used on Local Server 3000
