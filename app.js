@@ -61,6 +61,20 @@ app.get("/secrets", (req, res) => {
   }
 });
 
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) { 
+      console(err); 
+    } else {
+      res.redirect('/');
+    }
+  });
+});
+
 app.post("/register", (req, res) => {
   User.register({ username: req.body.username }, req.body.password, (err, user) => {
     if (err) {
@@ -72,10 +86,6 @@ app.post("/register", (req, res) => {
       })
     }
   })
-});
-
-app.get("/login", (req, res) => {
-    res.render("login");
 });
 
 app.post("/login", async (req, res) => {
@@ -96,9 +106,6 @@ app.post("/login", async (req, res) => {
   });
 });
 
-app.get("/logout", (req, res) => {
-    res.render("logout");
-});
 
 const port = process.env.PORT || 3000;
 
