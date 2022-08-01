@@ -36,7 +36,10 @@ async function main() {
 
 const userSchema = new mongoose.Schema({
     username: String,
-    password: String
+    password: String,
+    googleId: String,
+    facebookId: String,
+    secret: String
   });
 
 userSchema.plugin(passportLocalMongoose);
@@ -46,8 +49,14 @@ const User = mongoose.model('User', userSchema);
 
 passport.use(User.createStrategy());
 
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user);
+  })
+});
 
 passport.use(new GoogleStrategy({
   clientID: process.env.CLIENT_ID,
@@ -68,6 +77,7 @@ passport.use(new FacebookStrategy({
   callbackURL: "http://localhost:3000/auth/facebook/secrets"
 },
 function(accessToken, refreshToken, profile, cb) {
+  console.log(profile);
   User.findOrCreate({ facebookId: profile.id }, function (err, user) {
     return cb(err, user);
   });
@@ -101,11 +111,15 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/secrets", (req, res) => {
-  if (req.isAuthenticated()){
-    res.render("secrets");
-  } else {
-    res.redirect("/login")
-  }
+  User.find({"secret": {$ne:null}}, (err, foundUsers) => {
+    if(err) {
+      console.log(err)
+    } else {
+      if(foundUsers) {
+        res.render ("secrets", {usersWithSecret: foundUsers})
+      }
+    }
+  })
 });
 
 app.get("/login", (req, res) => {
@@ -123,7 +137,11 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/submit", (req, res) => {
-  res.render("submit");
+  if (req.isAuthenticated()){
+    res.render("submit");
+  } else {
+    res.redirect("/login")
+  }
 });
 
 app.post("/register", (req, res) => {
@@ -155,6 +173,27 @@ app.post("/login", async (req, res) => {
         })
     }
   });
+});
+
+app.post("/submit", async (req, res) => {
+
+  const secret = req.body.secret;
+
+  User.findById(req.user.id, (err, foundUser) => {
+    if(err) {
+      console.log(err)
+    } else {
+      if(foundUser) {
+        foundUser.secret = secret;
+        foundUser.save(() => {
+          res.redirect("/secrets")
+        })
+      } else {
+        redirect("/login")
+      }
+    }
+  })
+
 });
 
 const port = process.env.PORT || 3000;
